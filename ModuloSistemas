@@ -1,0 +1,98 @@
+module sistemaslineales
+    
+    
+    implicit none
+    contains
+    
+    
+    
+  !METODO DE FACTORIZACION LU CON PIVOTAJE PARCIAL
+   subroutine factorizacion_LU(P,A,L,U,n)
+   integer, intent(in) :: n
+   real, intent(inout) :: A(n,n)
+   real, intent(out) :: L(n,n), U(n,n)
+   real, allocatable, intent(out) :: P(:,:)
+   real :: temp(size(A,2)), eps
+   integer :: i, j, k, s, i_max
+   L=0.
+   U=0.
+   eps = 1d-6
+   allocate(P(n,n))
+   
+   !defino P
+   P=0.
+   do k=1, n
+       P(k,k)=1.                                !Diagonal
+   end do
+   
+do k = 1, n                   !If, pivoteo.
+    do i = k +1, n
+        if(abs(A(k,k))<eps) then
+            !Si en la diagonal de A tengo un cero, pivoto tanto A como P 
+            i_max = maxloc(A(k+1:s,k),1)
+            temp = A(k,:)
+            A(k,:) = A(k+i_max,:)
+            A(k+i_max,:) = temp
+            temp = P(k,:)
+            P(k,:)=A(k+i_max,:)
+            P(k+i_max,:) = temp
+        end if 
+    end do
+end do
+
+
+
+do k = 1, n
+    do j=k,n
+        U(k,j) = A(k,j) - dot_product(L(k, 1:k-1), U(1:k-1, j)) 
+    end do 
+    L(k,k)=1
+    do i=k+1,n
+        L(i,k) = (A(i,k) - dot_product (L(i,1:k-1), U(1:k-1,k)))/U(k,k)
+    end do 
+end do 
+    
+   
+   
+   
+   end subroutine
+   
+   
+   
+   
+   
+   !SUSTITUCION INVERSA
+   
+   function sustitucion_inversa(U,c,n) result(x) 
+   
+   integer, intent(in) :: n
+   real, intent(in) :: U(n,n), c(n)
+   real :: x(n)
+   integer :: i
+   
+   x(n)=c(n)/U(n,n)
+   
+   do i=n-1, 1, -1
+       x(i)= (c(i)-dot_product(U(i,i+1:n), x(i+1:n)))/U(i,i)
+   end do
+   
+   end function
+   
+   
+   !SUSTITUCION DIRECTA
+   
+   function sustitucion_directa(L,b,n) result(c)
+   integer, intent(in) :: n
+   real, intent(in) :: L(n,n), b(n)
+   real :: c(n)
+   integer :: i
+   
+   c(1)=b(1)/L(1,1)
+   
+   do i=2,n
+       c(i)=(b(i)-dot_product(L(i,1:i-1),c(1:i-1)))/L(i,i)
+   end do
+   end function
+   
+   
+    end module
