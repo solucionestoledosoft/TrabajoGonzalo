@@ -1,0 +1,55 @@
+
+   subroutine factorizacion_LU(A,L,U,n)
+   integer, intent(in) :: n
+   real, intent(in) :: A(n,n)
+   real, intent(out) :: L(n,n), U(n,n)
+   integer :: i, j, k
+   L=0.
+   U=0.
+
+do k = 1, n
+    do j=k,n
+        U(k,j) = A(k,j) - dot_product(L(k, 1:k-1), U(1:k-1, j)) 
+    end do 
+    L(k,k)=1
+    do i=k+1,n
+        L(i,k) = (A(i,k) - dot_product (L(i,1:k-1), U(1:k-1,k)))/U(k,k)
+    end do 
+end do 
+    
+   
+   end subroutine
+   
+   subroutine pivotamiento(A,P,n)
+   
+   integer, intent(in) ::n
+   real, intent(inout) :: A(n,n)
+   real, allocatable, intent(out) :: P(:,:)
+   real :: temp(size(A,2)), eps, temp_2(size(A,2))
+   integer           :: k,i, i_max
+
+   eps = 1d-6
+   allocate(P(n,n))
+   
+   !defino P
+   P=0.
+   do k=1, n
+       P(k,k)=1.
+   end do
+   
+do k = 1, n                   !If, pivoteo.
+    do i = k +1, n
+        if(abs(A(k,k))<eps) then
+            !Si en la diagonal de A tengo un cero, pivoto tanto A como P 
+            i_max = maxloc(A(k+1:n,k),1)
+            temp = A(k,:)
+            A(k,:) = A(k+i_max,:)
+            A(k+i_max,:) = temp
+            temp_2 = P(k,:)
+            P(k,:)=P(k+i_max,:)
+            P(k+i_max,:) = temp_2
+        end if 
+    end do
+end do
+
+end subroutine
